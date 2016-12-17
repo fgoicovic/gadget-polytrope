@@ -7,7 +7,7 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 
-class profile():
+class profile:
 
   def __init__(self, n = 3.,gamma=None):
     if gamma != None:
@@ -15,12 +15,12 @@ class profile():
         print("ERROR: gamma = %.2f is not allowed, please choose a value larger than 1.2"%(gamma))
         sys.exit()
       n = 1 / (gamma - 1.)
+    else:
+      gamma = 1. + 1. / n
     if n <= 0 or n >= 5.:
       print("ERROR: n = %.2f is not allowed, please choose between 0 and 5"%(n))
       sys.exit()
     self.n = float(n)
-    if gamma == None:
-      gamma = 1. + 1. / n
     self.gamma = gamma 
 
     self.theta = np.array([0.])
@@ -116,7 +116,7 @@ class profile():
     P_c = G*M**2/(4*np.pi*(self.n+1)*dtheta_x1**2*R**4)
     
     #rho = rho_c*theta**self.n
-    rho = theta**self.n
+    rho = rho_c*theta**self.n
     P = P_c*theta**(self.n+1.)
     u  = 1 / (self.gamma - 1.) * P/rho
     

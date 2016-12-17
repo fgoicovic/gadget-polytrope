@@ -11,12 +11,13 @@ from libs.OptionsParser import *
 M = 1.
 R = 1. 
 G = 1.
-N = int(1e6)
-N_str = '1e6'
+#N = int(1e6)
 
-GAMMA = 1.4
+op = OptionsParser()
+op = op.get_args()
+N = op.num
 
-prof = profile(gamma=GAMMA)
+prof = profile(gamma=op.gamma)
 prof.solve_lane_emden()
 x, rho, P = prof.get_profile()
 ax1 = prof.plot_profile()
@@ -109,7 +110,7 @@ Unit_Length = 6.957e10
 Unit_Velocity = np.sqrt(6.67e-8)/np.sqrt(Unit_Length)*np.sqrt(Unit_Mass)
 Unit_Time = Unit_Length / Unit_Velocity
 
-u_prof = 1 / (GAMMA-1) * P / rho 
+u_prof = 1 / (op.gamma-1) * P / rho 
 T = mean_weigth * PROTON / BOLTZMANN * u_prof * Unit_Velocity**2 
 for i in range(len(r_new)):
     ig = np.where(np.fabs(x-r_new[i]) == np.min(np.fabs(x-r_new[i])))
@@ -139,7 +140,7 @@ flag_feedback = 0  # long
 bytesleft = 256 - 6*4 - 6*8 - 8 - 8 - 2*4 - 6*4
 fill = np.zeros(int(bytesleft/4.0), dtype=np.int)  # int
 
-with open('polytrope.dat', 'wb') as f:
+with open(op.outfile, 'wb') as f:
     nbytes = 256
     # Header
     f.write(struct.pack('i', nbytes))
