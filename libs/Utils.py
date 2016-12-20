@@ -2,8 +2,50 @@ import numpy as np
 import sys
 import logging
 import struct
+import matplotlib.pyplot as plt
+from matplotlib import rc
+from matplotlib import rcParams
 
-def save_particles(pos, vel, mass, u, outfile, format):
+
+
+def display_profiles(m, pos, u, ax):
+    fontsize=18
+    
+    font = {'family' : 'serif',
+            'serif': ['Times'],
+            'size'   : fontsize}
+    
+    rcParams['text.latex.preamble']=[r"\usepackage{amsmath,bm}\newcommand{\sbf}[1]{\textsf{\textbf{#1}}}"]
+    rc('text', usetex=True)
+    rc('font', **font)
+
+    r = np.linalg.norm(pos, axis = 1)
+    hist,edges = np.histogram(r, bins='auto')
+    nbins = len(hist)
+    rho_c = np.zeros(nbins)
+    u_c   = np.zeros(nbins)
+    r_c   = np.zeros(nbins)
+    for i in range(len(hist)):
+        vol      = 4 * np.pi / 3. * (edges[i+1]**3 - edges[i]**3)
+        rho_c[i] = m * hist[i] / vol
+        r_c[i]   = (edges[i+1] + edges[i]) / 2.
+        ig = np.where( (r < edges[i+1]) & (r > edges[i]) )
+        u_c[i]   = np.mean(u[ig[0]])
+
+    ax1 = ax[0]
+    ax2 = ax[1]
+    ax1.minorticks_on()
+    ax2.minorticks_on()
+    ax1.plot(r_c, rho_c, 'go', label = 'Stretched particles')
+    ax1.legend(loc = 'best', numpoints = 1)
+    plt.setp(ax1.get_xticklabels(), visible = False)
+    ax1.set_ylabel(r"$\rho$")
+    ax2.plot(r_c, u_c, 'go', label = 'Stretched particles')
+    ax2.set_xlabel(r"$r$")
+    ax2.set_ylabel(r"$u$")
+
+
+def save_particles(ids, pos, vel, mass, u, outfile, format):
 
     if format == 0:
         # Openning file
@@ -43,7 +85,6 @@ def save_particles(pos, vel, mass, u, outfile, format):
 
     elif format == 1:
         Ngas = len(mass)
-        ids = np.arange(Ngas)
         Npart = np.array([Ngas, 0, 0, 0, 0, 0])
         Nmass = np.array([0, 0, 0, 0, 0, 0])
         # Linearizing the 3D-array of the position and velocity

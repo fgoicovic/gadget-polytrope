@@ -24,6 +24,7 @@ class profile:
     self.gamma = gamma 
 
     self.theta = np.array([0.])
+    self.rho = np.array([0.])
 
   def solve_lane_emden(self, h = 0.01, method = "runge"):
 
@@ -40,13 +41,13 @@ class profile:
 
     n_points = int(np.floor(10. / h))
 
-    theta = np.zeros(n_points) - 1.
-    mu = np.zeros(n_points)
-    x = np.zeros(n_points)
+    theta    = np.zeros(n_points) - 1.
+    mu       = np.zeros(n_points)
+    x        = np.zeros(n_points)
     theta[0] = 1.
-    mu[0] = 0.
-    x[0] = 0.
-    print("Solving Lane-Emden equations...")
+    mu[0]    = 0.
+    x[0]     = 0.
+    print("Solving Lane-Emden equation...")
     if method == "runge":
       i = 0
       while(theta[i] > 0.):
@@ -87,38 +88,31 @@ class profile:
     self.mu = mu
     self.x = x 
 
-  def get_profile(self, G=1., M=1., R=1.):
+  def compute_profile(self, G = 1., M = 1., R = 1.):
     if self.theta[0] == 0.:
       print("ERROR: Please run 'solve_lane_emden()' first.")
       sys.exit()
 
     theta = self.theta
     x = self.x
-    dtheta_x1 = np.fabs((theta[-2]-theta[-1])/(x[-2]-x[-1]))
+    dtheta_x1 = np.fabs((theta[-2] - theta[-1]) / (x[-2] - x[-1]))
     x1 = x[-1]
-    rho_c = M*x1/(4*np.pi*R**3*dtheta_x1)
-    P_c = G*M**2/(4*np.pi*(self.n+1)*dtheta_x1**2*R**4)
+    rho_c = M * x1 / (4 * np.pi * R**3 * dtheta_x1)
+    P_c = G * M **2 / (4 * np.pi * (self.n + 1) * dtheta_x1**2 * R**4)
     
-    rho = rho_c*theta**self.n
-    P = P_c*theta**(self.n+1.)
-    return x/x1, rho, P
+    self.rho = rho_c * theta**self.n
+    self.P   = P_c * theta**(self.n + 1.)
+    self.u   = 1 / (self.gamma - 1.) * self.P / self.rho
 
-  def plot_profile(self, field='rho', G=1., M=1., R=1., axes=None, **kargs):
-    if self.theta[0] == 0.:
-      print("ERROR: Please run 'solve_lane_emden()' first.")
-      sys.exit()
+  def plot_profile(self, field = 'rho', G = 1., M = 1., R = 1., axes = None, **kargs):
+    if self.rho[0] == 0.:
+      compute_profile(G = G, M = M, R = R)
 
-    theta = self.theta
-    x = self.x
-    dtheta_x1 = np.fabs((theta[-2]-theta[-1])/(x[-2]-x[-1]))
-    x1 = x[-1]
-    rho_c = M*x1/(4*np.pi*R**3*dtheta_x1)
-    P_c = G*M**2/(4*np.pi*(self.n+1)*dtheta_x1**2*R**4)
-    
-    #rho = rho_c*theta**self.n
-    rho = rho_c*theta**self.n
-    P = P_c*theta**(self.n+1.)
-    u  = 1 / (self.gamma - 1.) * P/rho
+    x   = self.x
+    x1  = x[-1]
+    rho = self.rho
+    P   = self.P
+    u   = self.u
     
     if axes == None:
       fig = plt.figure()
@@ -131,3 +125,4 @@ class profile:
       axes.plot(x/x1, u,'-',**kargs)
 
     return axes
+

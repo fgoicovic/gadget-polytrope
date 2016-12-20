@@ -25,15 +25,27 @@ class OptionsParser:
                             default = "Polytrope.dat")
 
         self.parser.add_argument("--plot",
-                            dest   = "plot",
-                            help   = "Plot analytic and actual radial profiles (histogram)",
-                            action = "store_true")
+                            dest    = "plot",
+                            help    = "Plot analytic and actual radial profiles (histogram)",
+                            action  = "store_true")
 
         self.parser.add_argument("--format",
                             dest    = "format",
                             type    = int,
                             help    = "Format of output file. 0 = ASCII, 1 = Gadget binary (format 1)",
                             default = 1 )
+
+        self.parser.add_argument("-m", "--mass",
+                            dest     = "mass",
+                            type     = float,
+                            help     = "Total gas mass",
+                            default  = 1.)
+
+        self.parser.add_argument("-r", "--radius",
+                            dest     = "radius",
+                            type     = float,
+                            help     = "Radius of the sphere",
+                            default  = 1.)
 
     def get_args(self):
         return self.parser.parse_args()
