@@ -1,6 +1,6 @@
 # gadget-polytrope
 
-Generating a particle distribution with a polytropic profile. 
+Generates a spherical particle distribution with a polytropic profile. 
 It is oriented for producing initial conditions for GADGET, although
 it is possible to obtain the positions in ASCII format as well.
 
@@ -15,15 +15,15 @@ Felipe G. Goicovic
 
 The basic usage is
 ```bash
-./polyt-ics.py -g GAMMA -n NUM
+./polyt-ics -g GAMMA -n NUM
 ```
 where GAMMA is the polytropic index and NUM is the number of particles desired.
 This will produce a binary file called 'Polytrope.dat' that works as initial
 conditions for GADGET (format 1).
 
-For a complete description of the parameters use
+For a complete description of parameters use
 ```bash
-./polyt-ics.py -h
+./polyt-ics -h
 ```
 
 
