@@ -15,12 +15,13 @@ def display_profiles(m, pos, u, ax):
             'serif': ['Times'],
             'size'   : fontsize}
     
-    rcParams['text.latex.preamble']=[r"\usepackage{amsmath,bm}\newcommand{\sbf}[1]{\textsf{\textbf{#1}}}"]
+    rcParams['text.latex.preamble'] = \
+        [r"\usepackage{amsmath,bm}\newcommand{\sbf}[1]{\textsf{\textbf{#1}}}"]
     rc('text', usetex=True)
     rc('font', **font)
 
-    r = np.linalg.norm(pos, axis = 1)
-    hist,edges = np.histogram(r, bins='auto')
+    r = np.linalg.norm(pos, axis=1)
+    hist, edges = np.histogram(r, bins='auto')
     nbins = len(hist)
     rho_c = np.zeros(nbins)
     u_c   = np.zeros(nbins)
@@ -29,18 +30,18 @@ def display_profiles(m, pos, u, ax):
         vol      = 4 * np.pi / 3. * (edges[i+1]**3 - edges[i]**3)
         rho_c[i] = m * hist[i] / vol
         r_c[i]   = (edges[i+1] + edges[i]) / 2.
-        ig = np.where( (r < edges[i+1]) & (r > edges[i]) )
-        u_c[i]   = np.mean(u[ig[0]])
+        ig = np.where((r < edges[i+1]) & (r > edges[i]))
+        u_c[i] = np.mean(u[ig[0]])
 
     ax1 = ax[0]
     ax2 = ax[1]
     ax1.minorticks_on()
     ax2.minorticks_on()
-    ax1.plot(r_c, rho_c, 'go', label = 'Stretched particles')
-    ax1.legend(loc = 'best', numpoints = 1)
-    plt.setp(ax1.get_xticklabels(), visible = False)
+    ax1.plot(r_c, rho_c, 'go', label='Stretched particles')
+    ax1.legend(loc='best', numpoints=1)
+    plt.setp(ax1.get_xticklabels(), visible=False)
     ax1.set_ylabel(r"$\rho$")
-    ax2.plot(r_c, u_c, 'go', label = 'Stretched particles')
+    ax2.plot(r_c, u_c, 'go', label='Stretched particles')
     ax2.set_xlabel(r"$r$")
     ax2.set_ylabel(r"$u$")
 
@@ -65,18 +66,14 @@ def save_particles(ids, pos, vel, mass, u, outfile, format):
             rx = '% 3.8e' % pos[i][0]
             ry = '% 3.8e' % pos[i][1]
             rz = '% 3.8e' % pos[i][2]
-            vx = '% 3.8e' % vel[i][0]
-            vy = '% 3.8e' % vel[i][1]
-            vz = '% 3.8e' % vel[i][2]
+            ie = '% 3.8e' % u[i]
 
             # Right-align the strings
-            outstring = "{0} {1} {2} {3} {4} {5} {6}\n".format( m.rjust(12),\
-                                                               rx.rjust(12),\
-                                                               ry.rjust(12),\
-                                                               rz.rjust(12),\
-                                                               vx.rjust(12),\
-                                                               vy.rjust(12),\
-                                                               vz.rjust(12))
+            outstring = "{0} {1} {2} {3} {4}\n".format( m.rjust(12),\
+                                                    rx.rjust(12),\
+                                                    ry.rjust(12),\
+                                                    rz.rjust(12),\
+                                                    ie.rjust(12))
             # Write to file
             ofile.write(outstring)
 

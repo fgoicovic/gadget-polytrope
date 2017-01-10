@@ -13,10 +13,25 @@ import sys
 import matplotlib.pyplot as plt
 
 class profile:
-    """ Class that computes the polytropic profile with a given index 
-    by solving the Lane-Emden equation"""
+    """ Class that computes the polytropic profile with a given index by 
+    solving the Lane-Emden equation
+
+    Atributes
+    ---------
+    n: polytropic index
+    gamma: polytropic exponent (1+1/n)
+    x: dimensionless radial coordinate 
+    theta: dimensionless solution of Lane-Emden equation
+    rho: density profile 
+    P: pressure profile
+    u: internal energy profile
+    """
 
     def __init__(self, n=3., gamma=None):
+        
+        #To initialize the profile it is necessary to specify either 'n' or 
+        #'gamma'. If both are given, the script will use the latter. 
+       
         if gamma != None:
             if gamma <= 1.2:
                 print("ERROR: gamma = %.2f is not allowed, please choose a \
@@ -38,6 +53,12 @@ class profile:
         self.rho = np.array([0.])
 
     def solve_lane_emden(self, h=0.01, method="runge"):
+        """
+        Arguments
+        ---------
+        h: step of the integration
+        method: Only allowed 'runge' (4th order Runge-kutta)
+        """
 
         def dtheta_dx(x, mu):
             if x > 0.:
@@ -94,10 +115,16 @@ class profile:
         mu = mu[idx[0]]
         x = x[idx[0]]
         self.theta = theta
-        self.mu = mu
         self.x = x 
 
     def compute_profile(self, G=1., M=1., R=1.):
+        """
+        Arguments
+        ---------
+        G: gravitational constant 
+        M: total mass of the sphere
+        R: radius of the sphere
+        """
         if self.theta[0] == 0.:
             print("ERROR: Please run 'solve_lane_emden()' first.")
             sys.exit()
