@@ -4,15 +4,16 @@ Generates a spherical particle distribution with a polytropic profile.
 It is oriented for producing initial conditions for GADGET, although
 it is possible to obtain the positions in ASCII format as well.
 
-The code first solve the Lane-Emden equations with a given index and 
+The code first solves the Lane-Emden equations with a given index and 
 then it radially stretches a close-packed sphere of particles to match
 the corresponding polytropic density profile. Based on the final radial
-position, the code also assings a internal energy to each
+position, the code also assigns an internal energy to each
 particle to reproduce the polytropic temperature profile.
 
-This script is **under development**.
+This script is **under development**, thus comments and contributions
+are very much welcome.
 
-# Author
+# Author
 
 Felipe G. Goicovic
 
