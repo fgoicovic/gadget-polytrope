@@ -108,7 +108,7 @@ def main():
                           axes=ax1, R=R, M=M)
         prof.plot_profile(field='u', label=r'Analytic profile', lw=2, 
                           axes=ax2, R=R, M=M)
-        display_profiles(m, pos, u, ax=(ax1,ax2))
+        display_profiles(op.gamma, m, pos, u, ax=(ax1,ax2))
         plt.show()
     
     

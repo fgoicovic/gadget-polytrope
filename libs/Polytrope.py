@@ -112,7 +112,6 @@ class profile:
             sys.exit()
         idx = np.where(theta >= 0.)
         theta = theta[idx[0]]
-        mu = mu[idx[0]]
         x = x[idx[0]]
         self.theta = theta
         self.x = x 

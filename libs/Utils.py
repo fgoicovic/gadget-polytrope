@@ -8,7 +8,7 @@ from matplotlib import rcParams
 
 
 
-def display_profiles(m, pos, u, ax):
+def display_profiles(gamma, m, pos, u, ax):
     fontsize=18
     
     font = {'family' : 'serif',
@@ -38,7 +38,7 @@ def display_profiles(m, pos, u, ax):
     ax1.minorticks_on()
     ax2.minorticks_on()
     ax1.plot(r_c, rho_c, 'go', label='Stretched particles')
-    ax1.legend(loc='best', numpoints=1)
+    ax1.legend(loc='best', numpoints=1, title=r'$\gamma=$%.1f'%(gamma))
     plt.setp(ax1.get_xticklabels(), visible=False)
     ax1.set_ylabel(r"$\rho$")
     ax2.plot(r_c, u_c, 'go', label='Stretched particles')
