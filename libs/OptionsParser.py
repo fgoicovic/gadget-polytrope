@@ -6,7 +6,7 @@ class OptionsParser:
         self.parser = argparse.ArgumentParser(description='Generate a sphere of particles with a polytropic profile.',
                                               formatter_class=argparse.RawTextHelpFormatter)
 
-        self.parser.add_argument("-g", "--gamma",
+        self.parser.add_argument("-g", "-gamma",
                             dest     = "gamma",
                             type     = float,
                             help     = "Polytropic index",
@@ -29,19 +29,19 @@ class OptionsParser:
                             help    = "Plot analytic and actual radial profiles (histogram)",
                             action  = "store_true")
 
-        self.parser.add_argument("--format",
+        self.parser.add_argument("-format",
                             dest    = "format",
                             type    = int,
                             help    = "Format of output file. 0 = ASCII, 1 = Gadget binary (format 1)",
                             default = 1 )
 
-        self.parser.add_argument("-m", "--mass",
+        self.parser.add_argument("-m", "-mass",
                             dest     = "mass",
                             type     = float,
                             help     = "Total gas mass",
                             default  = 1.)
 
-        self.parser.add_argument("-r", "--radius",
+        self.parser.add_argument("-r", "-radius",
                             dest     = "radius",
                             type     = float,
                             help     = "Radius of the sphere",

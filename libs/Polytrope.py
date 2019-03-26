@@ -12,26 +12,26 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 
-class profile:
-    """ Class that computes the polytropic profile with a given index by 
+class PolytropicProfile:
+    """ Class that computes the polytropic profile with a given index by
     solving the Lane-Emden equation
 
     Atributes
     ---------
     n: polytropic index
     gamma: polytropic exponent (1+1/n)
-    x: dimensionless radial coordinate 
+    x: dimensionless radial coordinate
     theta: dimensionless solution of Lane-Emden equation
-    rho: density profile 
+    rho: density profile
     P: pressure profile
     u: internal energy profile
     """
 
     def __init__(self, n=3., gamma=None):
-        
-        #To initialize the profile it is necessary to specify either 'n' or 
-        #'gamma'. If both are given, the script will use the latter. 
-       
+
+        #To initialize the profile it is necessary to specify either 'n' or
+        #'gamma'. If both are given, the script will use the latter.
+
         if gamma != None:
             if gamma <= 1.2:
                 print("ERROR: gamma = %.2f is not allowed, please choose a \
@@ -47,7 +47,7 @@ class profile:
             sys.exit()
 
         self.n = float(n)
-        self.gamma = gamma 
+        self.gamma = gamma
 
         self.theta = np.array([0.])
         self.rho = np.array([0.])
@@ -73,14 +73,17 @@ class profile:
 
         n_points = int(np.floor(10. / h))
 
-        theta = np.zeros(n_points) - 1.
+        theta = np.full(n_points, -1.)
         mu    = np.zeros(n_points)
         x     = np.zeros(n_points)
         theta[0] = 1.
         print("Solving Lane-Emden equation...")
         if method == "runge":
+            print("Method: {0} with integration step of {1}".format("Runge-Kutta",
+                                                                    h))
             i = 0
             while(theta[i] > 0.):
+                # only add more elements if needed
                 if i >= len(theta) - 1:
                     theta = np.append(theta, np.zeros(n_points)-1.)
                     mu = np.append(mu, np.zeros(n_points))
@@ -98,7 +101,7 @@ class profile:
                 c3 = dmu_dx(x_aux, theta_aux)
                 theta_aux = theta[i] + k3 * h / 2.
                 mu_aux = mu[i] + c3 * h / 2.
-                x_aux = x[i] + h 
+                x_aux = x[i] + h
                 k4 = dtheta_dx(x_aux, mu_aux)
                 c4 = dmu_dx(x_aux, theta_aux)
                 k = (k1 + 2. * k2 + 2. * k3 + k4) / 6.
@@ -110,31 +113,32 @@ class profile:
         else:
             print("ERROR: Method %s not allowed"%(method))
             sys.exit()
-        idx = np.where(theta >= 0.)
-        theta = theta[idx[0]]
-        x = x[idx[0]]
-        self.theta = theta
-        self.x = x 
+        idx = np.where(theta >= 0.)[0]
+        self.theta = theta[idx]
+        self.mu    = mu[idx]
+        self.x     = x[idx]
+        print("Done with Lane-Emden.")
 
     def compute_profile(self, G=1., M=1., R=1.):
         """
         Arguments
         ---------
-        G: gravitational constant 
+        G: gravitational constant
         M: total mass of the sphere
         R: radius of the sphere
         """
         if self.theta[0] == 0.:
-            print("ERROR: Please run 'solve_lane_emden()' first.")
-            sys.exit()
+            print("Warning: Running 'solve_lane_emden()' with default parameters.")
+            self.solve_lane_emden()
 
         theta = self.theta
+        mu = self.mu
         x = self.x
-        dtheta_x1 = np.fabs((theta[-2] - theta[-1]) / (x[-2] - x[-1]))
-        x1 = x[-1]
-        rho_c = M * x1 / (4 * np.pi * R**3 * dtheta_x1)
-        P_c = G * M**2 / (4 * np.pi * (self.n + 1) * dtheta_x1**2 * R**4)
-        
+        m_n = M / mu[-1]
+        r_n = R / x[-1]
+        rho_c = m_n / (4*np.pi*r_n**3)
+        P_c = G*m_n**2 / (4*np.pi*(self.n+1)*r_n**4)
+
         self.rho = rho_c * theta**self.n
         self.P   = P_c * theta**(self.n + 1.)
         self.u   = 1 / (self.gamma - 1.) * self.P / self.rho
@@ -148,7 +152,7 @@ class profile:
         rho = self.rho
         P   = self.P
         u   = self.u
-        
+
         if axes == None:
             fig = plt.figure()
             axes = fig.add_subplot(111)

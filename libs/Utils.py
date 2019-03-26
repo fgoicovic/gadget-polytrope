@@ -1,25 +1,12 @@
+from __future__ import print_function
+
 import numpy as np
 import sys
-import logging
-import struct
+from logging import warning
+from struct import pack
 import matplotlib.pyplot as plt
-from matplotlib import rc
-from matplotlib import rcParams
-
-
 
 def display_profiles(gamma, m, pos, u, ax):
-    fontsize=18
-    
-    font = {'family' : 'serif',
-            'serif': ['Times'],
-            'size'   : fontsize}
-    
-    rcParams['text.latex.preamble'] = \
-        [r"\usepackage{amsmath,bm}\newcommand{\sbf}[1]{\textsf{\textbf{#1}}}"]
-    rc('text', usetex=True)
-    rc('font', **font)
-
     r = np.linalg.norm(pos, axis=1)
     hist, edges = np.histogram(r, bins='auto')
     nbins = len(hist)
@@ -48,32 +35,45 @@ def display_profiles(gamma, m, pos, u, ax):
 
 def save_particles(ids, pos, vel, mass, u, outfile, format):
 
+    N = len(pos)
+
     if format == 0:
         # Openning file
         try:
             ofile = open(outfile,'w')
         except IOError as e:
             msg = "IO Error({0}): {1}".format(e.errno, e.strerror)
-            logging.warning(msg)
+            warning(msg)
         except:
-            print "Unexpected error:", sys.exc_info()[0]
+            print("Unexpected error: {}".format(sys.exc_info()[0]))
             raise
 
+        id_space = len("{}".format(N))
+
         # Preparing every line to print to the file
-        for i in range(len(pos)):
+        for i in range(N):
             # Formatting particle attributes
-            m  = '% 3.8e' % mass[i]
+            ie = '% d' % ids[i]
+            me = '% 3.8e' % mass[i]
             rx = '% 3.8e' % pos[i][0]
             ry = '% 3.8e' % pos[i][1]
             rz = '% 3.8e' % pos[i][2]
-            ie = '% 3.8e' % u[i]
+            vx = '% 3.8e' % pos[i][0]
+            vy = '% 3.8e' % pos[i][1]
+            vz = '% 3.8e' % pos[i][2]
+            ue = '% 3.8e' % u[i]
 
             # Right-align the strings
-            outstring = "{0} {1} {2} {3} {4}\n".format( m.rjust(12),\
-                                                    rx.rjust(12),\
-                                                    ry.rjust(12),\
-                                                    rz.rjust(12),\
-                                                    ie.rjust(12))
+            outstring = "{0} {1} {2} {3} {4} {5} {6} {7} {8}\n".\
+                         format( ie.rjust(id_space),\
+                                 me.rjust(12),\
+                                 rx.rjust(12),\
+                                 ry.rjust(12),\
+                                 rz.rjust(12),\
+                                 vx.rjust(12),\
+                                 vy.rjust(12),\
+                                 vz.rjust(12),\
+                                 ue.rjust(12))
             # Write to file
             ofile.write(outstring)
 
@@ -87,7 +87,7 @@ def save_particles(ids, pos, vel, mass, u, outfile, format):
         # Linearizing the 3D-array of the position and velocity
         pos = pos.ravel()
         vel = vel.ravel()
-        
+
         dummy = np.zeros(Npart[0])
         time = 0.
         redshift = 0.0  # double
@@ -95,49 +95,49 @@ def save_particles(ids, pos, vel, mass, u, outfile, format):
         flag_feedback = 0  # long
         bytesleft = 256 - 6*4 - 6*8 - 8 - 8 - 2*4 - 6*4
         fill = np.zeros(int(bytesleft/4.0), dtype=np.int)  # int
-        
+
         with open(outfile, 'wb') as f:
             nbytes = 256
             # Header
-            f.write(struct.pack('i', nbytes))
-            f.write(struct.pack('i' * len(Npart), *Npart))
-            f.write(struct.pack('d' * len(Nmass), *Nmass))
-            f.write(struct.pack('d', time))
-            f.write(struct.pack('d', redshift))
-            f.write(struct.pack('i', flag_sfr))
-            f.write(struct.pack('i', flag_feedback))
-            f.write(struct.pack('i' * len(Npart), *Npart))
-            f.write(struct.pack('i' * len(fill), *fill))
-            f.write(struct.pack('i', nbytes))
-        
+            f.write(pack('i', nbytes))
+            f.write(pack('i' * len(Npart), *Npart))
+            f.write(pack('d' * len(Nmass), *Nmass))
+            f.write(pack('d', time))
+            f.write(pack('d', redshift))
+            f.write(pack('i', flag_sfr))
+            f.write(pack('i', flag_feedback))
+            f.write(pack('i' * len(Npart), *Npart))
+            f.write(pack('i' * len(fill), *fill))
+            f.write(pack('i', nbytes))
+
             # Positions
             nbytes = int(len(pos) * 4)
-            f.write(struct.pack('i', nbytes))
-            f.write(struct.pack('f' * len(pos), *pos))
-            f.write(struct.pack('i', nbytes))
-        
+            f.write(pack('i', nbytes))
+            f.write(pack('f' * len(pos), *pos))
+            f.write(pack('i', nbytes))
+
             # Velocities
-            f.write(struct.pack('i', nbytes))
-            f.write(struct.pack('f' * len(vel), *vel))
-            f.write(struct.pack('i', nbytes))
-        
+            f.write(pack('i', nbytes))
+            f.write(pack('f' * len(vel), *vel))
+            f.write(pack('i', nbytes))
+
             # Ids
             nbytes = int(len(ids) * 4)
-            f.write(struct.pack('i', nbytes))
-            f.write(struct.pack('i' * len(ids), *ids))
-            f.write(struct.pack('i', nbytes))
-        
+            f.write(pack('i', nbytes))
+            f.write(pack('i' * len(ids), *ids))
+            f.write(pack('i', nbytes))
+
             # Masses
             nbytes = len(mass) * 4
-            f.write(struct.pack('i', nbytes))
-            f.write(struct.pack('f' * len(mass), *mass))
-            f.write(struct.pack('i', nbytes))
-        
+            f.write(pack('i', nbytes))
+            f.write(pack('f' * len(mass), *mass))
+            f.write(pack('i', nbytes))
+
             # Energy
             nbytes = len(u) * 4
-            f.write(struct.pack('i', nbytes))
-            f.write(struct.pack('f' * len(u), *u))
-            f.write(struct.pack('i', nbytes))
+            f.write(pack('i', nbytes))
+            f.write(pack('f' * len(u), *u))
+            f.write(pack('i', nbytes))
 
 
 

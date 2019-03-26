@@ -3,9 +3,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from libs.Polytrope import *
-from libs.OptionsParser import *
-from libs.Utils import *
+from libs.Polytrope import PolytropicProfile
+from libs.uniform_sphere import Sphere
+from libs.OptionsParser import OptionsParser
+from libs.Utils import save_particles,display_profiles
 
 def main():
 
@@ -15,45 +16,27 @@ def main():
     N = op.num
     M = op.mass
     R = op.radius
-    
+
     #solve the Lane-Emden equation
-    prof = profile(gamma=op.gamma)
-    prof.solve_lane_emden()
+    prof = PolytropicProfile(gamma=op.gamma)
     prof.compute_profile(M=M, R=R)
     x, Density, InternalEnergy = prof.x, prof.rho, prof.u
-    x /= x[-1]    
-    
-    print("Placing particles in uniform distribution...")
-    Nside = int(np.floor(N**(1./3.)))
-    Naux  = int(Nside**3)
-    pos   = np.zeros((2 * Naux, 3)) 
-    h     = 2. / Nside
-    for i in range(Nside):
-        for j in range(Nside):
-            for k in range(Nside):
-                l = Nside * Nside * i + Nside * j + k
-                pos[l,0] = -1 + h * (i + 0.25)
-                pos[l,1] = -1 + h * (j + 0.25)
-                pos[l,2] = -1 + h * (k + 0.25)
-                pos[l+Naux,0] = -1 + h * (i + 0.75)
-                pos[l+Naux,1] = -1 + h * (j + 0.75)
-                pos[l+Naux,2] = -1 + h * (k + 0.75)
-    
-    #keep only the particles inside the sphere
-    r    = np.linalg.norm(pos, axis=1)
-    ig   = np.where(r <= 1.)
-    pos  = pos[ig[0],:]
-    r    = r[ig[0]]
-    Ngas = len(r)
-    m    = M / Ngas
-    vel  = np.zeros((Ngas, 3))
-    u    = np.zeros(Ngas)
-    ids  = np.arange(1, Ngas+1, step=1)
-    mass = m * np.ones_like(r)
+    x /= x[-1]
 
-    print("Placed %d particles in close-packed sphere."%(Ngas))
-    
-    #generate shells containing roughly equal number of particles
+    # first generate a sphere with uniform distribution of particles
+    sphere = Sphere(N=N)
+    Ngas = sphere.Npart
+    pos = sphere.pos
+    # derived quantities
+    r = np.linalg.norm(pos, axis=1)
+    vel = np.zeros((Ngas,3))
+    mpart = M / Ngas
+    r = np.linalg.norm(pos, axis=1)
+    mass = np.full(Ngas, mpart)
+    u = np.zeros(Ngas)
+    ids = np.arange(1, Ngas+1)
+
+    # shells containing roughly equal number of particles
     r_n = np.array([0.])
     i = 0
     if Ngas > 100:
@@ -70,7 +53,7 @@ def main():
     x   *= R
     r   *= R
     r_n *= R
-    
+
     print("Stretching particles...")
     r_n_new = np.zeros(len(r_n))
     rho_n = np.zeros(len(r_n) - 1)
@@ -78,14 +61,14 @@ def main():
         idx = np.where((r < r_n[i+1]) & (r >= r_n[i]))
         ngas = len(idx[0])
         vol = 4 * np.pi / 3. * (r_n[i+1]**3 - r_n[i]**3)
-        rho0 = m * ngas / vol
+        rho0 = mpart * ngas / vol
         idx = int(r_n_new[i] / x[-1] * (len(x) - 1))
         r_n_new[i+1] = (rho0 / Density[idx] * (r_n[i+1]**3 - r_n[i]**3) \
                         + r_n_new[i]**3)**(1./3.)
         vol_new = 4 * np.pi/3. * (r_n_new[i+1]**3 - r_n_new[i]**3)
         if vol_new > 0.:
-            rho_n[i] = m * ngas / vol_new
-    
+            rho_n[i] = mpart * ngas / vol_new
+
     for i in range(len(r_n) - 1):
         idx = np.where( (r < r_n[i+1]) & (r >= r_n[i]) )
         for j in idx[0]:
@@ -97,21 +80,21 @@ def main():
                 pos[j,2] *= r_new / r[j]
             idx = int(r_new / x[-1] * (len(x) - 1))
             u[j] = InternalEnergy[idx]
-    
+
 
     if op.plot:
-        fig = plt.subplots(figsize=(8,8))
+        fig = plt.subplots(figsize=(6,6))
         plt.subplots_adjust(hspace=0.1, right=0.95, top=0.95)
         ax1 = plt.subplot(211)
         ax2 = plt.subplot(212, sharex=ax1)
-        prof.plot_profile(field='rho', label=r'Analytic profile', lw=2, 
+        prof.plot_profile(field='rho', label=r'Analytic profile', lw=2,
                           axes=ax1, R=R, M=M)
-        prof.plot_profile(field='u', label=r'Analytic profile', lw=2, 
+        prof.plot_profile(field='u', label=r'Analytic profile', lw=2,
                           axes=ax2, R=R, M=M)
-        display_profiles(op.gamma, m, pos, u, ax=(ax1,ax2))
+        display_profiles(op.gamma, mpart, pos, u, ax=(ax1,ax2))
         plt.show()
-    
-    
+
+
     print("Writing output file...")
     save_particles(ids, pos, vel, mass, u, op.outfile, op.format)
 
